@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid black;
+        }
+        .exit-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Face Detection</h1>
+        <form action="{{ url_for('video_feed') }}" method="post">
+            <label for="name">Enter your name:</label>
+            <input type="text" id="name" name="name" placeholder="Your Name">
+            <input type="submit" value="Start">
+        </form>
+        <a href="{{ url_for('exit') }}" class="exit-link">Exit</a>
+    </div>
+    <script>
+        // JavaScript code here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form submission handler
+            document.getElementById('faceDetectionForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent the form from submitting
+                var nameInput = document.getElementById('name');
+                var name = nameInput.value.trim();
+
+                if (name === '') {
+                    alert('Please enter your name.');
+                    nameInput.focus();
+                    return false;
+                }
+
+                // Additional validation or processing can be added here
+
+                // Submit the form
+                this.submit();
+            });
+
+            // Exit link click handler
+            document.getElementById('exitLink').addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent the default link behavior
+
+                // Perform any necessary cleanup or actions before exiting
+
+                // Redirect or perform exit action
+                window.location.href = "{{ url_for('exit') }}";
+            });
+
+            // Example of updating the video feed dynamically (not functional, just an example)
+            setInterval(function() {
+                // Simulating dynamic update of video feed
+                document.getElementById('videoFeed').src = "{{ updated_video_feed_url }}";
+            }, 5000); // Update every 5 seconds
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection</title>
+</head>
+<body>
+    <h1>Face Detection</h1>
+    <button id="webcamButton">Start Webcam Detection</button><br><br>
+
+    <label for="model">Model:</label>
+    <select name="model" id="model">
+        <option value="face_detection_yunet_2023mar.onnx" selected>face_detection_yunet_2023mar.onnx</option>
+        <!-- Add other options if needed -->
+    </select><br><br>
+
+    <label for="backend_target">Backend and Target:</label>
+    <select name="backend_target" id="backend_target">
+        <option value="0">OpenCV implementation + CPU</option>
+        <option value="1">CUDA + GPU (CUDA)</option>
+        <option value="2">CUDA + GPU (CUDA FP16)</option>
+        <option value="3">TIM-VX + NPU</option>
+        <option value="4">CANN + NPU</option>
+    </select><br><br>
+
+    <label for="conf_threshold">Confidence Threshold:</label>
+    <input type="number" name="conf_threshold" id="conf_threshold" value="0.9" step="0.01"><br><br>
+
+    <label for="nms_threshold">NMS Threshold:</label>
+    <input type="number" name="nms_threshold" id="nms_threshold" value="0.3" step="0.01"><br><br>
+
+    <label for="top_k">Top K:</label>
+    <input type="number" name="top_k" id="top_k" value="5000"><br><br>
+
+    <label for="class_name">Class Name:</label>
+    <input type="text" name="class_name" id="class_name"><br><br>
+
+    <div id="videoContainer"></div>
+
+    <script>
+        document.getElementById('webcamButton').addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const videoElement = document.createElement('video');
+                    videoElement.autoplay = true;
+                    videoElement.srcObject = stream;
+
+                    const videoContainer = document.getElementById('videoContainer');
+                    videoContainer.innerHTML = '';
+                    videoContainer.appendChild(videoElement);
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+
+                    videoElement.addEventListener('play', () => {
+                        const width = videoElement.videoWidth;
+                        const height = videoElement.videoHeight;
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const model = document.getElementById('model').value;
+                        const backend_target = document.getElementById('backend_target').value;
+                        const conf_threshold = document.getElementById('conf_threshold').value;
+                        const nms_threshold = document.getElementById('nms_threshold').value;
+                        const top_k = document.getElementById('top_k').value;
+                        const class_name = document.getElementById('class_name').value;
+
+                        const formData = new FormData();
+                        formData.append('model', model);
+                        formData.append('backend_target', backend_target);
+                        formData.append('conf_threshold', conf_threshold);
+                        formData.append('nms_threshold', nms_threshold);
+                        formData.append('top_k', top_k);
+                        formData.append('class_name', class_name);
+
+                        const sendData = () => {
+                            context.drawImage(videoElement, 0, 0, width, height);
+                            const imageBlob = canvas.toBlob(blob => {
+                                const formDataWithImage = new FormData();
+                                formDataWithImage.append('image', blob, 'webcam_capture.png');
+                                for (let pair of formData.entries()) {
+                                    formDataWithImage.append(pair[0], pair[1]);
+                                }
+                                fetch('/detect', { method: 'POST', body: formDataWithImage })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            console.log('Detection completed and images saved successfully.');
+                                        } else {
+                                            console.error('Failed to save images.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                    });
+                            }, 'image/png');
+                        };
+
+                        setInterval(sendData, 1000); // Send image data every second
+                    });
+                })
+                .catch(error => {
+                    console.error('Error accessing webcam:', error);
+                });
+        });
+    </script>
+</body>
+</html>
